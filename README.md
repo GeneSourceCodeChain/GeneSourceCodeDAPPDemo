@@ -1,2 +1,7 @@
 # GeneSourceCodeDAPPDemo
-A demo showing how to create dApp for gene source code system
+Several dApp demos runnig on gene source code system
+
+### content
+1.random (random)
+
+a oracle server for generating random number decentralizely.
