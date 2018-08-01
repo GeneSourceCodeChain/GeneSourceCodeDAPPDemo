@@ -3,12 +3,11 @@
 
 #include <vector>
 #include <eosiolib/eosio.hpp>
-#include <eosiolib/crypto.h>
 
 using namespace std;
 using namespace eosio;
 
-class Random : public eosio::contract {
+class Random : public contract {
 	//@abi table reqtable i64
 	struct Request {
 		uint64_t req_key;
@@ -25,7 +24,7 @@ class Random : public eosio::contract {
 	struct Seed {
 		account_name owner;
 		string hash;
-		uint64_t seed;
+		int64_t seed;
 		bool accepted;
 		
 		account_name primary_key() const {return owner;}
@@ -41,18 +40,16 @@ class Random : public eosio::contract {
 		EOSLIB_SERIALIZE(Config,(owner)(require_matched_num))
 	};
 
-	//tables
 	using reqtable = multi_index<N(reqtable),Request>;
 	using seedtable = multi_index<N(seedtable),Seed>;
 	using conftable = multi_index<N(conftable),Config>;
 	
-	//member objects
 	reqtable requests;
 	seedtable seeds;
 	conftable config;
-	
-protected:
-	string to_sha256(uint64_t);
+
+protected:	
+	string to_sha256(int64_t);
 	
 public:
 	Random(account_name name);
@@ -61,9 +58,10 @@ public:
 	//@abi action
 	void sendhash(account_name owner, string hash);
 	//@abi action
-	void sendseed(account_name owner, uint64_t seed);
+	void sendseed(account_name owner, int64_t seed);
 	//@abi action
-	void reqest(account_name owner,uint64_t index, string handler = "getrandom");
+	void request(account_name owner,uint64_t index, string handler = "getrandom");
 };
 
 #endif
+

@@ -1,8 +1,9 @@
 #include <string>
-#include <sstream>
+#include <eosiolib/crypto.h>
 #include "Random.hpp"
 
 using namespace std;
+using namespace eosio;
 
 Random::Random(account_name self)
 :contract(self),requests(_self,_self),seeds(_self,_self),config(_self,_self)
@@ -32,7 +33,7 @@ void Random::sendhash(account_name owner, string hash)
 	//send the hash of the coming random seed
 	require_auth(owner);
 	auto config_exists = config.find(_self);
-	eosio_assert(config.end() != config_exists,"you must call setMatchedNum() first!");
+	eosio_assert(config.end() != config_exists,"you must call setmatchnum() first!");
 	auto seed_exists = seeds.find(owner);
 	if(seeds.end() == seed_exists) {
 		//if the owner is a new comer
@@ -52,13 +53,13 @@ void Random::sendhash(account_name owner, string hash)
 	}
 }
 
-void Random::sendseed(account_name owner, uint64_t seed)
+void Random::sendseed(account_name owner, int64_t seed)
 {
 	require_auth(owner);
 	auto config_exists = config.find(_self);
-	eosio_assert(config.end() != config_exists,"you must call setMatchedNum() first!");
+	eosio_assert(config.end() != config_exists,"you must call setmatchnum() first!");
 	auto seed_exists = seeds.find(owner);
-	eosio_assert(seeds.end() != seed_exists,"you must call sendHash() first!");
+	eosio_assert(seeds.end() != seed_exists,"you must call sendhash() first!");
 	//check whether the seed can match with the hash
 	string hash = to_sha256(seed);
 	if(hash != seed_exists->hash) {
@@ -82,20 +83,20 @@ void Random::sendseed(account_name owner, uint64_t seed)
 		print("we got enough seeds (",match_count,") matching to their hashes! gonna send random number...");
 #endif
 		//apply all seeds and delete them
-		uint64_t seed = 0;
+		int64_t seed = 0;
 		for(auto it = seeds.cbegin() ; it != seeds.cend() ; ) {
 			//only adopt accepted seeds
 			if(it->accepted) seed += it->seed;
 			it = seeds.erase(it);
 		}
 		//calculate a random number according to seeds
-		checksum256 cs;
+		checksum256 cs = {0};
 		string ascii = to_string(seed);
 		sha256(const_cast<char*>(ascii.data()),ascii.size(),&cs);
-		uint64_t random = (((uint64_t)cs.hash[0] << 56 ) & 0xFF00000000000000U) 
-				|  (((uint64_t)cs.hash[1] << 48 ) & 0x00FF000000000000U)
-				|  (((uint64_t)cs.hash[2] << 40 ) & 0x0000FF0000000000U)
-				|  (((uint64_t)cs.hash[3] << 32 ) & 0x000000FF00000000U)
+		int64_t random = (((int64_t)cs.hash[0] << 56 ) & 0xFF00000000000000U) 
+				|  (((int64_t)cs.hash[1] << 48 ) & 0x00FF000000000000U)
+				|  (((int64_t)cs.hash[2] << 40 ) & 0x0000FF0000000000U)
+				|  (((int64_t)cs.hash[3] << 32 ) & 0x000000FF00000000U)
 				|  ((cs.hash[4] << 24 ) & 0x00000000FF000000U)
 				|  ((cs.hash[5] << 16 ) & 0x0000000000FF0000U)
 				|  ((cs.hash[6] << 8 ) & 0x000000000000FF00U)
@@ -116,7 +117,7 @@ void Random::sendseed(account_name owner, uint64_t seed)
 	}//end if
 }
 
-void Random::reqest(account_name owner,uint64_t index, string handler)
+void Random::request(account_name owner,uint64_t index, string handler)
 {
 	require_auth(owner);
 	requests.emplace(_self,[&](auto & r) {
@@ -128,19 +129,19 @@ void Random::reqest(account_name owner,uint64_t index, string handler)
 	});
 }
 
-string Random::to_sha256(uint64_t word)
+string Random::to_sha256(int64_t word)
 {
-	checksum256 cs;
+	checksum256 cs = {0};
 	string ascii = to_string(word);
 	sha256(const_cast<char*>(ascii.data()),ascii.size(),&cs);
 	string retval;
 	for(int i = 0 ; i < sizeof(cs.hash) ; i++) {
-		stringstream buffer;
-		buffer<<hex<<static_cast<unsigned int>(cs.hash[i]);
-		retval += buffer.str();
+		char hex[3] = { 0 };
+		snprintf(hex, sizeof(hex), "%02x", static_cast<unsigned char>(cs.hash[i]));
+		retval += hex;
 	}
 	return retval;
 }
 
-EOSIO_ABI(Random,(setmatchnum)(sendhash)(sendseed)(reqest))
+EOSIO_ABI(Random,(setmatchnum)(sendhash)(sendseed)(request))
 
