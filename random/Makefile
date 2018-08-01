@@ -31,10 +31,10 @@ install: all
 	#set randomoracle contract
 	cleos --wallet-url http://192.168.1.100:6666 -u http://192.168.1.100:8000 set contract randomoracle Random -p randomoracle
 	#set authority
-	cleos --wallet-url http://192.168.1.100:6666 -u http://192.168.1.100:8001 set account permission eosdacrandom active '{"threshold":1,"keys":[{"key":"EOS55MfVEkczBuFkbh9XyGTurk3KSAu9RcA5VTTEbwbcFdsHmhzGK","weight":1}],"accounts":[{"permission":{"actor":"eosdacrandom","permission":"eosio.code"},"weight":1}],"waits":[]}' owner -p eosdacrandom -x 10
+	cleos --wallet-url http://192.168.1.100:6666 -u http://192.168.1.100:8001 set account permission randomoracle active '{"threshold":1,"keys":[{"key":"EOS55MfVEkczBuFkbh9XyGTurk3KSAu9RcA5VTTEbwbcFdsHmhzGK","weight":1}],"accounts":[{"permission":{"actor":"randomoracle","permission":"eosio.code"},"weight":1}],"waits":[]}' owner -p randomoracle -x 10
 	#set requester cotract
 	cleos --wallet-url http://192.168.1.100:6666 -u http://192.168.1.100:8001 set contract requester11a ./requester -p requester11a
-
+	
 test:
 	LD_LIBRARY_PATH=/home/ssgene/opt/boost/lib:${LD_LIBRARY_PATH} ./randseedserver/randseedserver &
 	bash looprequest.sh
