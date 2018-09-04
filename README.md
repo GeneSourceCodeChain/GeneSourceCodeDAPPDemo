@@ -9,3 +9,7 @@ an oracle server for generating random number decentralizely.
 2.eosfilestore (eosfilestore)
 
 an on-chain storage tool. the chunks of file are stored in random sequence to make sure the other users can't extract the file from EOS.
+
+3.Gene Melee (game)
+
+this is the executable controlling the game Gene Melee whose Beta version is going online soon.
